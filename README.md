@@ -1,2 +1,1 @@
-# template
-# I have been altered, again, and again.
+# Uncomment line 2 of .gitignore at some point
