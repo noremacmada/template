@@ -1,22 +1,31 @@
 "use strict;"
 const mdlRoutes = require("./routes.js")
-
+//load route ref
+const routes = new mdlRoutes()
 module.exports = class Server{
   constructor(){
     //load session ref
     //load db ref
-    //load route ref
-    this.routes = new mdlRoutes()
   }
 
   requestHandler(request, response) {
     //authenticate
     //route
-    //authorize
-    //handle
-    response.writeHead(200, {"Content-Type":"text/plain"});
-    response.write("Helloah");
-    response.end();
+    let data = null
+    request.addListener(
+      "data",
+      (chunk) => {data += chunks}
+    )
+    request.addListener(
+      "end",
+      () => {
+        let handlerMetadata = routes.getHandlerMetadata(request, data)
+        //authorize
+        //handle
+        routes.handle(handlerMetadata, response)
+      }
+    )
+
   }
 
 }

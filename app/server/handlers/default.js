@@ -8,7 +8,7 @@ module.exports = class Default{
       }
     )
 
-    this.default = (request, response) => {
+    this.default = (requestType, params, response) => {
       response.writeHead(200, {"Content-Type":"text/plain"});
       response.write("Default");
       response.end();
