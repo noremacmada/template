@@ -1,5 +1,8 @@
+const mdlResponseWrapper = require("../response-wrapper")
 module.exports = class Default{
-  constructor(){
+  constructor(response){
+    super(response)
+    this.responseWrapper = new mdlResponseWrapper(response)
     Object.defineProperty(this, "className", {
         get: function(){
           return this.constructor.name
@@ -8,10 +11,8 @@ module.exports = class Default{
       }
     )
 
-    this.default = (requestType, params, response) => {
-      response.writeHead(200, {"Content-Type":"text/plain"});
-      response.write("Default");
-      response.end();
+    this.default = (requestType, params) => {
+      this.responseWrapper.dynamic("Default")
     }
   }
 }

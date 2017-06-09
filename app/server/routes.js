@@ -1,6 +1,7 @@
 const mdlUrl = require("url")
 const mdlFs = require("fs")
 const mdlQuerystring = require("querystring")
+const mdlResponseWrapper = require("./response-wrapper.js")
 
 module.exports = class Router{
   constructor(){
@@ -69,7 +70,7 @@ module.exports = class Router{
       : objHandler.methods.filter(objMethod => objMethod.name == handlerMetadata.methodName)
     let objMethod = arrMethods != null && arrMethods.length == 1 ? arrMethods[0] : null
     if(objMethod != null){
-      let handler = new objHandler.mdlHandler()
+      let handler = new objHandler.mdlHandler(response)
       let methodName = objMethod.method
       handler[methodName](
         handlerMetadata.requestType,
@@ -78,10 +79,8 @@ module.exports = class Router{
       )
     }
     else{
-      response.writeHead(200, {"Content-Type":"text/plain"});
-      response.write("Not Found");
-      response.write(JSON.stringify(handlerMetadata));
-      response.end();
+      let responseWrapper = new ResponseWrapper(response)
+      responseWrapper.error(404)
     }
   }
 }

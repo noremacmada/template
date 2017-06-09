@@ -1,11 +1,9 @@
-const mdlDefault = require("./Default.js")
+const mdlDefault = require("./default.js")
 module.exports = class Home extends mdlDefault{
-  constructor(){
-    super()
-    this.home = (requestType, params, response) => {
-      response.writeHead(200, {"Content-Type":"text/plain"});
-      response.write("Home");
-      response.end();
+  constructor(response){
+    super(response)
+    this.home = (requestType, params) => {
+      this.responseWrapper.dynamic("Home")
     }
   }
 }
