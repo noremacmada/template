@@ -12,7 +12,8 @@ module.exports = class File extends mdlDefault{
       let arrDir = __dirname.split("\\")
       arrDir.pop()
       arrDir.pop()
-      let dirClient = string.join(arr, "/") + "/" + client
+      arrDir.push("client")
+      let dirClient = arrDir.join("/")
       let filePath = dirClient + "/" + params.relPath
       this.responseWrapper.static(filePath)
     }

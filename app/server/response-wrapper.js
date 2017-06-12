@@ -23,7 +23,7 @@ module.exports = class ResponseWrapper{
     return path.split('.').pop()
   }
   setContentType(extension){
-    let mimeType = supportedMimeTypes[extension]
+    let mimeType = supportedMimeTypes[extension.split(".").pop()]
     if(mimeType == null){
       mimeType = supportedMimeTypes["txt"]
     }
@@ -51,17 +51,21 @@ module.exports = class ResponseWrapper{
   }
   streamBody(path){
     let readStream = fs.createReadStream(path)
-    thisResponse = this.response
+    let thisResponse = this.response
     readStream.on("data", (chunk) => thisResponse.write(chunk))
     readStream.on("end", () => thisResponse.end())
   }
-  error(code){
-    this.response.code = code
+  error(code, body){
+    this.response.statusCode = code
+    if(body != null){
+      this.response.write(body)
+    }
     this.response.end()
   }
   redirect(url){
-    this.response.code = 302 //found
+    this.response.statusCode = 302 //found
     this.response.setHeader("Location",url)
+    this.response.end()
   }
   file(path){
     this.setContentType(path)

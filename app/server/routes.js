@@ -13,7 +13,9 @@ module.exports = class Router{
         pattern: "www/.*/.*\.",
         handler: "file",
         method: "pipe",
-        getParams: (path) => {return {relPath: path.replace("www/")}}
+        getParams: (path) => {
+          return {relPath: path.replace("www/","")}
+        }
       }
     ]
   }
@@ -48,9 +50,9 @@ module.exports = class Router{
     )
     let isOverridden = overrides.length > 0
     if(isOverridden){
-      handlerMetadata.handlerName = overrides[0].handlerName
-      handlerMetadata.methodName = overrides[0].methodName
-      handlerMetadata.params = overrides[0].getParams()
+      handlerMetadata.handlerName = overrides[0].handler
+      handlerMetadata.methodName = overrides[0].method
+      handlerMetadata.params = overrides[0].getParams(path)
     }
     else{
       let arrPath = path.split("/")
@@ -73,14 +75,20 @@ module.exports = class Router{
     if(objMethod != null){
       let handler = new objHandler.mdlHandler(response)
       let methodName = objMethod.method
-      handler[methodName](
-        handlerMetadata.requestType,
-        handlerMetadata.params,
-        response
-      )
+      try{
+        handler[methodName](
+          handlerMetadata.requestType,
+          handlerMetadata.params,
+          response
+        )
+      }
+      catch(err){
+        let responseWrapper = new mdlResponseWrapper(response)
+        responseWrapper.error(500, err.stack)
+      }
     }
     else{
-      let responseWrapper = new ResponseWrapper(response)
+      let responseWrapper = new mdlResponseWrapper(response)
       responseWrapper.error(404)
     }
   }

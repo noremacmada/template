@@ -20,7 +20,7 @@ module.exports = class Default{
     )
 
     this.default = (requestType, params) => {
-      this.responseWrapper.dynamic("Default")
+      this.responseWrapper.redirect("/www/content/content.html")
     }
   }
 }
