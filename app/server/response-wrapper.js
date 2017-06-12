@@ -20,7 +20,7 @@ module.exports = class ResponseWrapper{
     this.response.setHeader("Cache-Control","no-cache")
   }
   getExtension(path){
-    return = path.split('.').pop()
+    return path.split('.').pop()
   }
   setContentType(extension){
     let mimeType = supportedMimeTypes[extension]
@@ -38,7 +38,7 @@ module.exports = class ResponseWrapper{
         fs.stat(
           file_path,
           (error, stat) => {
-            if (error) { reject error; }
+            if (error) { reject(error) }
             resolve(stat.size)
           }
         )

@@ -27,7 +27,8 @@ module.exports = class Router{
 
   loadHandler(fileName){
     let mdl = require("./handlers/" + fileName)
-    let inst = new mdl()
+    let rspnsMock = {setHeader: () => {}}
+    let inst = new mdl(rspnsMock)
     let methods = Object.keys(inst)
       .filter(key => typeof(inst[key]) === "function")
       .map(key => {return {name: key.toLowerCase(), method:key}})
