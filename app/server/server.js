@@ -2,6 +2,7 @@
 const mdlRoutes = require("./routes.js")
 //load route ref
 const routes = new mdlRoutes()
+
 module.exports = class Server{
   constructor(){
     //load session ref
