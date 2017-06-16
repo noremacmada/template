@@ -41,8 +41,8 @@ module.exports = class Router{
     }
   }
 
-  getHandlerMetadata(request, data){
-    let handlerMetadata = {requestType: request.method}
+  getHandlerMetadata(request){
+    let handlerName = "";
     let path = mdlUrl.parse(request.url).pathname.substring(1).toLowerCase();
     let overrides = this.overrides.filter(
       override =>
@@ -50,22 +50,43 @@ module.exports = class Router{
     )
     let isOverridden = overrides.length > 0
     if(isOverridden){
-      handlerMetadata.handlerName = overrides[0].handler
-      handlerMetadata.methodName = overrides[0].method
-      handlerMetadata.params = overrides[0].getParams(path)
+      handlerName = overrides[0].handler
     }
     else{
       let arrPath = path.split("/")
+      handlerName= arrPath[0] != "" ? arrPath[0] : "default"
+    }
+    return handlerName
+  }
+
+  getHandlerMetadata(request){
+    let handlerMetadata = {
+      requestType: request.method,
+      path: mdlUrl.parse(request.url).pathname.substring(1).toLowerCase()
+    }
+    let overrides = this.overrides.filter(
+      override =>
+        handlerMetadata.path.match(override.pattern) != null
+    )
+    handlerMetadata.isOverridden = overrides.length > 0
+    if(handlerMetadata.isOverridden){
+      handlerMetadata.handlerName = overrides[0].handler
+      handlerMetadata.methodName = overrides[0].method
+      handlerMetadata.getParams = overrides[0].getParams
+    }
+    else{
+      let arrPath = handlerMetadata.path.split("/")
       handlerMetadata.handlerName= arrPath[0] != "" ? arrPath[0] : "default"
       handlerMetadata.methodName = arrPath.length > 1 && arrPath[1] != "" ? arrPath[1] : "default"
-      handlerMetadata.params = Object.assign(
-        mdlQuerystring.parse(mdlUrl.parse(request.url).query),
-        mdlQuerystring.parse(data)
-      )
     }
     return handlerMetadata
   }
 
+  isAuthReqd(handlerMetadata){
+    let mdlHandler = this.handlers[handlerMetadata.handlerName].mdlHandler
+    return new mdlHandler({setHeader: () => {}}).isAuthReqd
+
+  }
   handle(handlerMetadata, response){
     let objHandler = this.handlers[handlerMetadata.handlerName]
     let arrMethods = objHandler == null

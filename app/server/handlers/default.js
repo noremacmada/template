@@ -1,7 +1,22 @@
 const mdlResponseWrapper = require("../response-wrapper")
+const mdlDb = require("../../data/db/db.js")
+
 module.exports = class Default{
-  constructor(response){
-    this.responseWrapper = new mdlResponseWrapper(response)
+  constructor(response, session, db){
+    Object.defineProperty(this, "responseWrapper",
+      {
+        enumerable: false,
+        value: new mdlResponseWrapper(response)
+      }
+    )
+
+    Object.defineProperty(this, "db",
+      {
+        enumerable: false,
+        value: new mdlDb().getDb()
+      }
+    )
+
     Object.defineProperty(this, "className", {
         get: function(){
           return this.constructor.name
@@ -9,6 +24,7 @@ module.exports = class Default{
         enumerable: false
       }
     )
+
     Object.defineProperty(
       this,
       "isAuthReqd",
@@ -20,7 +36,7 @@ module.exports = class Default{
     )
 
     this.default = (requestType, params) => {
-      this.responseWrapper.redirect("/www/content/content.html")
+      this.responseWrapper.redirect("/www/content/login.html")
     }
   }
 }
