@@ -67,6 +67,12 @@ module.exports = class ResponseWrapper{
     this.response.setHeader("Location",url)
     this.response.end()
   }
+  javascriptRedirect(url){
+    this.dynamic(
+      `{location:${url}}`
+      ".json"
+    )
+  }
   file(path){
     this.setContentType(path)
     this.setFileAttachmentHeaders(path)
