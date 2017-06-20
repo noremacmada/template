@@ -1,7 +1,7 @@
-const mdlUrl = require("url")
 const mdlFs = require("fs")
-const mdlQuerystring = require("querystring")
 const mdlResponseWrapper = require("./response-wrapper.js")
+const mdlUrl = require("url")
+const mdlQuerystring = require("querystring")
 
 module.exports = class Router{
   constructor(){
@@ -72,12 +72,13 @@ module.exports = class Router{
     if(handlerMetadata.isOverridden){
       handlerMetadata.handlerName = overrides[0].handler
       handlerMetadata.methodName = overrides[0].method
-      handlerMetadata.getParams = overrides[0].getParams
+      handlerMetadata.params = overrides[0].getParams(handlerMetadata.path)
     }
     else{
       let arrPath = handlerMetadata.path.split("/")
       handlerMetadata.handlerName= arrPath[0] != "" ? arrPath[0] : "default"
       handlerMetadata.methodName = arrPath.length > 1 && arrPath[1] != "" ? arrPath[1] : "default"
+      handlerMetadata.params = mdlQuerystring.parse(mdlUrl.parse(request.url).query)
     }
     return handlerMetadata
   }

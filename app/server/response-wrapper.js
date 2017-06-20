@@ -69,7 +69,7 @@ module.exports = class ResponseWrapper{
   }
   javascriptRedirect(url){
     this.dynamic(
-      `{location:${url}}`
+      `{location:${url}}`,
       ".json"
     )
   }

@@ -1,7 +1,6 @@
 'use strict;'
 const mdlServer = require("./app/server/server.js")
 const mdlHttps = require("https")
-
 const mdlFs = require('fs');
 
 const options = {
