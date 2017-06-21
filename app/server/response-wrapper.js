@@ -69,7 +69,7 @@ module.exports = class ResponseWrapper{
   }
   javascriptRedirect(url){
     this.dynamic(
-      `{location:${url}}`,
+      `{"location":"${url}"}`,
       ".json"
     )
   }
@@ -83,8 +83,12 @@ module.exports = class ResponseWrapper{
     this.streamBody(path)
   }
   dynamic(body, extension){
-    this.setContentType(extension)
-    this.response.write(body)
+    this.setContentType(extension != null ? extension : ".json")
+    let typeOfBody = typeof(body)
+    let content = typeOfBody == "string" ? body
+      : typeOfBody == "object" ? JSON.stringify(body)
+      : body.toString()
+    this.response.write(content)
     this.response.end()
   }
 }

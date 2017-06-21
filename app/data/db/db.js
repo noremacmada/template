@@ -1,4 +1,4 @@
-let objDb = {"session": new Object(), "data": new Object()}
+let objDb = {"session": new Object(), "data": {"users": new Object()}}
 module.exports = class Db{
   constructor(){}
   getDb(){

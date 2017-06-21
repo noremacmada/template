@@ -35,7 +35,7 @@ module.exports = class Default{
       }
     )
 
-    this.default = (requestType, params) => {
+    this.default = (serverData, params) => {
       this.responseWrapper.redirect("/www/content/login.html")
     }
   }

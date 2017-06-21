@@ -36,13 +36,14 @@ module.exports = class Server{
     }
 
     //handle
-    let data = null
-    request.addListener("data", (chunk) => {data += chunks})
+    let data = ""
+    request.addListener("data", (chunk) => {data += chunk})
     request.addListener(
       "end",
       () => {
         //handle
-        handlerMetadata.params = Object.assign(handlerMetadata.params, mdlQuerystring.parse(data))
+        let postParams = data != "" ? JSON.parse(data) : new Object()
+        handlerMetadata.params = Object.assign(handlerMetadata.params, postParams)
         routes.handle(handlerMetadata, response)
       }
     )

@@ -1,5 +1,7 @@
 const mdlDefault = require("./default.js")
 const mdlFs = require("fs")
+const newLine = require("os").EOL
+
 module.exports = class File extends mdlDefault{
   constructor(response){
     super(response)
@@ -19,20 +21,20 @@ module.exports = class File extends mdlDefault{
       }
     )
 
-    this.pipe = (requestType, params) => {
-      let dirClient = this.appDir + "/client"
-      let filePath = dirClient + "/" + params.relPath
+    this.pipe = (serverData, params) => {
+      let dirPublic = this.appDir + "/client/public"
+      let filePath = dirPublic + "/" + params.relPath
       this.responseWrapper.static(filePath)
     }
 
-    this.include = (requestType, params) =>
+    this.include = (serverData, params) =>
     {
-      if(requestType != "GET"){
+      if(serverData.requestType != "GET"){
         this.responseWrapper.console.error(403)
         return
       }
       let appDir = this.appDir
-      let filePath =  `${appDir}/client/script/apps/${params.app}.json`
+      let filePath =  `${appDir}/client/ngapp/apps/${params.app}.json`
       let prmsLoadFile = getPrmsLoadFile(filePath)
       let prmsLoadModules = prmsLoadFile.then(
         (appJson) => {
@@ -46,7 +48,7 @@ module.exports = class File extends mdlDefault{
           let components = appJson.components
           let arrObjComponents = new Array()
           let prmsLoadComponents = components.map(componentName => {
-              let dirPathComponent = `${appDir}/client/script/components/${componentName}`
+              let dirPathComponent = `${appDir}/client/ngapp/components/${componentName}`
               return getPrmsLoadComponents(dirPathComponent, componentName, arrObjComponents)
             }
           )
@@ -55,7 +57,7 @@ module.exports = class File extends mdlDefault{
                 return new Promise((resolve, reject) => {
                   resolve({appJson, arrServices, arrObjComponents})
                 }
-              )
+              ).catch(err => this.responseWrapper.error(500, "Error loading modules"))
             }
           )
         }
@@ -63,24 +65,11 @@ module.exports = class File extends mdlDefault{
       prmsLoadModules.then(
         (obj) => {
           let moduleName = `${params.app}Module`
-          let strApp = `var ${moduleName} = angular.module('${params.app}',[]);`
-          obj.appJson.services.forEach(
-            serviceName => {
-              let serviceFunctionName = serviceName.charAt(0).toUpperCase() + params.app.slice(1)
-              strApp += `\r\n${moduleName}.factory('${serviceName}', ${serviceFunctionName}Service);`
-            }
-          )
-          obj.arrObjComponents.forEach(
-            objComponent => {
-              strApp += '\r\n' + getComponentDeclaration(moduleName, objComponent)
-            }
-          )
-          obj.arrServices.forEach(service => strApp += `\r\n${service}`)
-          obj.arrObjComponents.forEach(objComponent => strApp += `\r\n${objComponent.controller}`)
+          let strApp = getStrApp(moduleName, params, obj)
           //might make sense to cache strApp somewhere...
           this.responseWrapper.dynamic(strApp, "js")
         }
-      )
+      ).catch(err => this.responseWrapper.error(500, "Error building app"))
     }
   }
 }
@@ -99,10 +88,10 @@ function getPrmsLoadFile(filePath){
     }
   )
 }
-function getPrmsLoadService(appDir,serviceName, arrServices){
+function getPrmsLoadService(appDir, serviceName, arrServices){
   return new Promise(
     (resolve, reject) => {
-      let filePathService = `${appDir}/client/script/services/${serviceName}.js`
+      let filePathService = `${appDir}/client/ngapp/services/${serviceName}.js`
       mdlFs.readFile(
         filePathService,
         "utf-8",
@@ -148,7 +137,7 @@ function getPrmsLoadComponentController(dirPathComponent, objComponent){
   )
 }
 function getPrmsLoadComponentTemplate(dirPathComponent, objComponent){
-  new Promise(
+  return new Promise(
     (resolve, reject) => {
       let filePathComponentTemplate = `${dirPathComponent}/${objComponent.name}Template.html`
       mdlFs.readFile(
@@ -156,7 +145,8 @@ function getPrmsLoadComponentTemplate(dirPathComponent, objComponent){
         "utf-8",
         (err, data) => {
           if (err){ throw err}
-          objComponent.template = data
+          let template = data.split(newLine).join(" ")
+          objComponent.template = template
           resolve()
         }
       )
@@ -185,12 +175,35 @@ function getPrmsLoadComponents(dirPathComponent, componentName, arrObjComponents
     }
   )
 }
+
 function getComponentDeclaration(moduleName, objComponent){
-  let kebabName = objComponent.name.replace(/([A-Z])/g, '-$1')
+  //let kebabName = objComponent.name.replace(/([A-Z])/g,"-$1").toLowerCase()
   let componentFunctionName = objComponent.name.charAt(0).toUpperCase() + objComponent.name.slice(1)
-  return `${moduleName}.component('${kebabName}',{
-  bindings:${objComponent.bindings},
-  controller:${componentFunctionName}Controller,
-  template: "${objComponent.template.replace("\"","\\\"")}"
+  return `${moduleName}.component('${objComponent.name}', {
+  bindings: ${objComponent.bindings},
+  controller: ${componentFunctionName}Controller,
+  template: "${objComponent.template.replace(/\"/g, "\\\"")}"
 });`
+//  template: \`${objComponent.template}\`
+//  template: \`${objComponent.template.replace(/\{/g,"\\{").replace(/\}/g,"\\}")}\`
+
+}
+
+function getStrApp(moduleName, params, obj){
+  let strApp = `var ${moduleName} = angular.module('${params.app}',[]);`
+  obj.appJson.services.forEach(
+    serviceName => {
+      let factoryName = serviceName.replace("Service","")
+      let serviceFunctionName = serviceName.charAt(0).toUpperCase() + serviceName.slice(1)
+      strApp += `\r\n${moduleName}.factory('${factoryName}', ${serviceFunctionName});`
+    }
+  )
+  obj.arrObjComponents.forEach(
+    objComponent => {
+      strApp += '\r\n' + getComponentDeclaration(moduleName, objComponent)
+    }
+  )
+  obj.arrServices.forEach(service => strApp += `\r\n${service}`)
+  obj.arrObjComponents.forEach(objComponent => strApp += `\r\n${objComponent.controller}`)
+  return strApp
 }

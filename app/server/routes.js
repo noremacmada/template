@@ -41,7 +41,7 @@ module.exports = class Router{
     }
   }
 
-  getHandlerMetadata(request){
+  getHandlerName(request){
     let handlerName = "";
     let path = mdlUrl.parse(request.url).pathname.substring(1).toLowerCase();
     let overrides = this.overrides.filter(
@@ -61,7 +61,9 @@ module.exports = class Router{
 
   getHandlerMetadata(request){
     let handlerMetadata = {
+      sessionId: request.sessionId,
       requestType: request.method,
+      user: request.user,
       path: mdlUrl.parse(request.url).pathname.substring(1).toLowerCase()
     }
     let overrides = this.overrides.filter(
@@ -99,7 +101,11 @@ module.exports = class Router{
       let methodName = objMethod.method
       try{
         handler[methodName](
-          handlerMetadata.requestType,
+          {
+            requestType: handlerMetadata.requestType,
+            user: handlerMetadata.user,
+            sessionId: handlerMetadata.sessionId
+          },
           handlerMetadata.params,
           response
         )

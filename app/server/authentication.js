@@ -15,11 +15,13 @@ module.exports = class Authentication{
       )
     }
     if(cookies.sessionId == null){
-      let sessionId = this.getNewUid();
+      let sessionId = this.getNewUid()
+      request.sessionId = sessionId
       response.setHeader("Set-Cookie",`sessionId=${sessionId}; HttpOnly`)
     }
     else{
       let user = db["session"][cookies.sessionId]
+      request.sessionId = cookies.sessionId
       request.user = user
     }
   }
